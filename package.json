@@ -1,18 +1,25 @@
 {
   "name": "@llblab/uniqueue",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "High-performance priority queue with unique key constraint (O(1) lookup, O(log n) update)",
   "type": "module",
   "main": "index.js",
+  "types": "index.d.ts",
   "exports": {
-    ".": "./index.js"
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
   },
   "files": [
     "index.js",
+    "index.d.ts",
     "README.md"
   ],
   "repository": "github:llblab/uniqueue",
   "scripts": {
+    "build:types": "tsc index.js --declaration --emitDeclarationOnly --allowJs --outDir .",
+    "prepack": "npm run build:types",
     "test": "node --test test.js"
   },
   "keywords": [
@@ -27,5 +34,8 @@
   ],
   "author": "LLB <shlavik@gmail.com>",
   "license": "MIT",
-  "sideEffects": false
+  "sideEffects": false,
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
 }
