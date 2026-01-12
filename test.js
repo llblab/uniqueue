@@ -1,9 +1,9 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { UniQueue } from "./dist/index.js";
+import { Uniqueue } from "./dist/index.js";
 
-test("UniQueue - Basic push/pop/peek (Min Heap)", () => {
-  const q = new UniQueue({ compare: (a, b) => a.val - b.val });
+test("Uniqueue - Basic push/pop/peek (Min Heap)", () => {
+  const q = new Uniqueue({ compare: (a, b) => a.val - b.val });
   q.push({ id: "a", val: 10 });
   q.push({ id: "b", val: 5 });
   q.push({ id: "c", val: 20 });
@@ -19,8 +19,8 @@ test("UniQueue - Basic push/pop/peek (Min Heap)", () => {
   assert.equal(q.pop(), undefined);
 });
 
-test("UniQueue - Unique Key Constraint (Update)", () => {
-  const q = new UniQueue({
+test("Uniqueue - Unique Key Constraint (Update)", () => {
+  const q = new Uniqueue({
     compare: (a, b) => a.val - b.val,
     extractKey: (item) => item.id,
   });
@@ -35,7 +35,7 @@ test("UniQueue - Unique Key Constraint (Update)", () => {
   assert.equal(q.peek().val, 15);
 });
 
-test("UniQueue - Max Size Eviction", () => {
+test("Uniqueue - Max Size Eviction", () => {
   // Max Heap behavior for eviction test (Leaderboard style: keep top N)
   // But wait, UniQueue evicts the ROOT (min).
   // If we want to keep Top N High Scores, we use a Min-Heap of size N.
@@ -44,7 +44,7 @@ test("UniQueue - Max Size Eviction", () => {
   // UniQueue logic: push adds item. If size > maxSize, returns pop().
   // If pop() returns the item we just pushed (because it was smallest), then we correctly rejected it.
 
-  const q = new UniQueue({
+  const q = new Uniqueue({
     maxSize: 3,
     compare: (a, b) => a.val - b.val, // Min-Heap
     extractKey: (item) => item.id,
@@ -68,8 +68,8 @@ test("UniQueue - Max Size Eviction", () => {
   assert.equal(q.peek().val, 20); // Now min is 20
 });
 
-test("UniQueue - get / has / size / clear", () => {
-  const q = new UniQueue({ extractKey: (item) => item.id });
+test("Uniqueue - get / has / size / clear", () => {
+  const q = new Uniqueue({ extractKey: (item) => item.id });
   q.push({ id: "a", val: 1 });
   q.push({ id: "b", val: 2 });
 
@@ -85,8 +85,8 @@ test("UniQueue - get / has / size / clear", () => {
   assert.equal(q.has("a"), false);
 });
 
-test("UniQueue - remove", () => {
-  const q = new UniQueue({
+test("Uniqueue - remove", () => {
+  const q = new Uniqueue({
     compare: (a, b) => a.val - b.val,
     extractKey: (item) => item.id,
   });
@@ -110,8 +110,8 @@ test("UniQueue - remove", () => {
   assert.equal(q.size, 2);
 });
 
-test("UniQueue - Iterator", () => {
-  const q = new UniQueue({ extractKey: (item) => item.id });
+test("Uniqueue - Iterator", () => {
+  const q = new Uniqueue({ extractKey: (item) => item.id });
   q.push({ id: "a", val: 1 });
   q.push({ id: "b", val: 2 });
   q.push({ id: "c", val: 3 });
@@ -123,8 +123,8 @@ test("UniQueue - Iterator", () => {
   assert.ok(items.find((i) => i.id === "c"));
 });
 
-test("UniQueue - Stress Test (Heap Integrity)", () => {
-  const q = new UniQueue({ compare: (a, b) => a - b });
+test("Uniqueue - Stress Test (Heap Integrity)", () => {
+  const q = new Uniqueue({ compare: (a, b) => a - b });
   const input = Array.from({ length: 1000 }, () =>
     Math.floor(Math.random() * 10000),
   );
@@ -148,8 +148,8 @@ test("UniQueue - Stress Test (Heap Integrity)", () => {
   }
 });
 
-test("UniQueue - Payload Update (Same Priority)", () => {
-  const q = new UniQueue({
+test("Uniqueue - Payload Update (Same Priority)", () => {
+  const q = new Uniqueue({
     compare: (a, b) => a.val - b.val,
     extractKey: (item) => item.id,
   });

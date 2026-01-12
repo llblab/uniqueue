@@ -24,10 +24,10 @@ npm install @llblab/uniqueue
 ### Basic Example (Max Heap)
 
 ```javascript
-import { UniQueue } from "@llblab/uniqueue";
+import { Uniqueue } from "@llblab/uniqueue";
 
 // Create a max-heap for leaderboard scores
-const leaderboard = new UniQueue({
+const leaderboard = new Uniqueue({
   compare: (a, b) => b.score - a.score, // Sort by score descending
   extractKey: (item) => item.playerId, // Unique by playerId
   maxSize: 3, // Keep only top 3 scores
@@ -60,7 +60,7 @@ for (const player of leaderboard) {
 
 ## API
 
-### `new UniQueue(options)`
+### `new Uniqueue(options)`
 
 Creates a new priority queue instance.
 

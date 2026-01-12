@@ -1,11 +1,11 @@
-export interface UniQueueOptions<T> {
+export interface UniqueueOptions<T> {
   data?: T[];
   maxSize?: number;
   compare?: (a: T, b: T) => number;
   extractKey?: (item: T) => string;
 }
 
-export class UniQueue<T> {
+export class Uniqueue<T> {
   data: T[];
   indexes: Map<string, number>;
 
@@ -18,10 +18,10 @@ export class UniQueue<T> {
     maxSize = Infinity,
     compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0),
     extractKey = (item) => item as unknown as string,
-  }: UniQueueOptions<T> = {}) {
+  }: UniqueueOptions<T> = {}) {
     this.data = data;
     this.indexes = new Map(
-      data.map((item, index) => [extractKey(item), index])
+      data.map((item, index) => [extractKey(item), index]),
     );
     this.#maxSize = maxSize;
     this.#compare = compare;
