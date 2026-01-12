@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "node:test";
-import { UniQueue } from "./index.js";
+import { UniQueue } from "./dist/index.js";
 
 test("UniQueue - Basic push/pop/peek (Min Heap)", () => {
   const q = new UniQueue({ compare: (a, b) => a.val - b.val });

@@ -1,47 +1,27 @@
-/**
- * @template T
- * @typedef {Object} UniQueueOptions
- * @property {T[]} [data] - Initial data array
- * @property {number} [maxSize] - Maximum queue size (default: Infinity)
- * @property {(a: T, b: T) => number} [compare] - Comparison function for heap ordering
- * @property {(item: T) => string} [extractKey] - Function to extract unique key from item
- */
+export interface UniQueueOptions<T> {
+  data?: T[];
+  maxSize?: number;
+  compare?: (a: T, b: T) => number;
+  extractKey?: (item: T) => string;
+}
 
-/**
- * Priority queue with unique key constraint.
- * Combines a min-heap with a key-to-index map for O(log n) push/pop with deduplication.
- *
- * @template T
- */
-export class UniQueue {
-  /** @type {T[]} */
-  data;
+export class UniQueue<T> {
+  data: T[];
+  indexes: Map<string, number>;
 
-  /** @type {Map<string, number>} */
-  indexes;
+  #maxSize: number;
+  #compare: (a: T, b: T) => number;
+  #extractKey: (item: T) => string;
 
-  /** @type {number} */
-  #maxSize;
-
-  /** @type {(a: T, b: T) => number} */
-  #compare;
-
-  /** @type {(item: T) => string} */
-  #extractKey;
-
-  /**
-   * @param {UniQueueOptions<T>} [options]
-   */
   constructor({
     data = [],
     maxSize = Infinity,
     compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0),
-    extractKey = (item) =>
-      /** @type {string} */ (/** @type {unknown} */ (item)),
-  } = {}) {
+    extractKey = (item) => item as unknown as string,
+  }: UniQueueOptions<T> = {}) {
     this.data = data;
     this.indexes = new Map(
-      data.map((item, index) => [extractKey(item), index]),
+      data.map((item, index) => [extractKey(item), index])
     );
     this.#maxSize = maxSize;
     this.#compare = compare;
@@ -54,11 +34,7 @@ export class UniQueue {
     }
   }
 
-  /**
-   * Move item up the heap to maintain heap property.
-   * @param {number} pos
-   */
-  #siftUp(pos) {
+  #siftUp(pos: number): void {
     const { data, indexes } = this;
     const compare = this.#compare;
     const extractKey = this.#extractKey;
@@ -77,11 +53,7 @@ export class UniQueue {
     data[pos] = item;
   }
 
-  /**
-   * Move item down the heap to maintain heap property.
-   * @param {number} pos
-   */
-  #siftDown(pos) {
+  #siftDown(pos: number): void {
     const { data, indexes } = this;
     const compare = this.#compare;
     const extractKey = this.#extractKey;
@@ -112,14 +84,7 @@ export class UniQueue {
     data[pos] = item;
   }
 
-  /**
-   * Add or update an item in the queue.
-   * - If key exists: Updates item and rebalances (unconditional update).
-   * - If key new: Adds item. If size > maxSize, evicts and returns min item.
-   * @param {T} item
-   * @returns {T | undefined} Evicted item if queue was full
-   */
-  push(item) {
+  push(item: T): T | undefined {
     const key = this.#extractKey(item);
     const index = this.indexes.get(key);
 
@@ -141,11 +106,7 @@ export class UniQueue {
     }
   }
 
-  /**
-   * Remove and return the top (minimum) item.
-   * @returns {T | undefined}
-   */
-  pop() {
+  pop(): T | undefined {
     if (this.data.length === 0) return;
 
     const top = this.data[0];
@@ -161,20 +122,11 @@ export class UniQueue {
     return top;
   }
 
-  /**
-   * Return the top (minimum) item without removing it.
-   * @returns {T | undefined}
-   */
-  peek() {
+  peek(): T | undefined {
     return this.data[0];
   }
 
-  /**
-   * Remove an item by key.
-   * @param {string} key
-   * @returns {boolean} true if item was removed
-   */
-  remove(key) {
+  remove(key: string): boolean {
     const index = this.indexes.get(key);
     if (index === undefined) return false;
 
@@ -185,7 +137,7 @@ export class UniQueue {
       return true;
     }
 
-    const item = /** @type {T} */ (this.data.pop());
+    const item = this.data.pop() as T;
     this.indexes.delete(key);
     this.indexes.set(this.#extractKey(item), index);
     this.data[index] = item;
@@ -200,46 +152,25 @@ export class UniQueue {
     return true;
   }
 
-  /**
-   * Check if an item exists.
-   * @param {string} key
-   * @returns {boolean}
-   */
-  has(key) {
+  has(key: string): boolean {
     return this.indexes.has(key);
   }
 
-  /**
-   * Get an item by key.
-   * @param {string} key
-   * @returns {T | undefined}
-   */
-  get(key) {
+  get(key: string): T | undefined {
     const index = this.indexes.get(key);
     return index !== undefined ? this.data[index] : undefined;
   }
 
-  /**
-   * Remove all items.
-   */
-  clear() {
+  clear(): void {
     this.data = [];
     this.indexes.clear();
   }
 
-  /**
-   * Get item count.
-   * @returns {number}
-   */
-  get size() {
+  get size(): number {
     return this.data.length;
   }
 
-  /**
-   * Iterate over items (arbitrary heap order).
-   * @returns {IterableIterator<T>}
-   */
-  *[Symbol.iterator]() {
+  *[Symbol.iterator](): IterableIterator<T> {
     yield* this.data;
   }
 }
