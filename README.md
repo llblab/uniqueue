@@ -11,7 +11,7 @@ Combines a binary heap with a key-to-index `Map`, enabling O(log n) inserts/upda
 - **O(1) Lookup**: Tracks item positions internally, avoiding O(n) scans for updates.
 - **Max Size Eviction**: Automatically removes the lowest-priority item when the limit is reached.
 - **Iterable**: Supports `for...of` iteration over items.
-- **Zero Dependencies**: ~1KB minified.
+- **Zero Dependencies**: ~1.7KB minified, ~0.7KB gzipped.
 
 ## Installation
 
