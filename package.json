@@ -1,6 +1,6 @@
 {
   "name": "@llblab/uniqueue",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "High-performance priority queue with unique key constraint (O(1) lookup, O(log n) update)",
   "type": "module",
   "main": "dist/index.js",
@@ -29,6 +29,7 @@
     "leaderboard",
     "cache",
     "lru",
+    "mru",
     "performance"
   ],
   "author": "LLB <shlavik@gmail.com>",

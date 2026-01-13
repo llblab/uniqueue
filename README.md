@@ -21,14 +21,19 @@ npm install @llblab/uniqueue
 
 ## Usage
 
-### Basic Example (Max Heap)
+### Basic Example (Top-N Leaderboard)
 
 ```javascript
 import { Uniqueue } from "@llblab/uniqueue";
 
-// Create a max-heap for leaderboard scores
+// The `compare` function determines which item sits at the root:
+// - (a, b) => a - b → Min-heap (smallest at root, evicted first)
+// - (a, b) => b - a → Max-heap (largest at root, evicted first)
+//
+// For "Top-N" scenario, use min-heap: when maxSize is exceeded,
+// the root (smallest/worst) is evicted, keeping the best scores.
 const leaderboard = new Uniqueue({
-  compare: (a, b) => b.score - a.score, // Sort by score descending
+  compare: (a, b) => a.score - b.score,
   extractKey: (item) => item.playerId, // Unique by playerId
   maxSize: 3, // Keep only top 3 scores
 });
@@ -39,18 +44,17 @@ leaderboard.push({ playerId: "bob", score: 80 });
 leaderboard.push({ playerId: "charlie", score: 120 });
 
 console.log(leaderboard.peek());
-// Output: { playerId: "charlie", score: 120 }
+// Output: { playerId: "bob", score: 80 } (min-heap root)
 
 // Update existing item (alice improves score)
 leaderboard.push({ playerId: "alice", score: 150 });
-// Now alice is top, bob is pushed down
 
 // Add item that exceeds maxSize
 leaderboard.push({ playerId: "dave", score: 200 });
-// Dave enters, Bob (lowest score) is evicted
+// Bob (lowest score at root) is evicted
 
 console.log(leaderboard.data);
-// Contains dave (200), alice (150), charlie (120)
+// Contains charlie (120), alice (150), dave (200)
 
 // Iterate over all items
 for (const player of leaderboard) {
