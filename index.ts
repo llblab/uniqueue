@@ -1,34 +1,41 @@
-export interface UniqueueOptions<T> {
+export interface UniqueueOptions<T, K = string> {
   data?: T[];
   maxSize?: number;
   compare?: (a: T, b: T) => number;
-  extractKey?: (item: T) => string;
+  extractKey?: (item: T) => K;
 }
 
-export class Uniqueue<T> {
+export class Uniqueue<T, K = string> {
   data: T[];
-  indexes: Map<string, number>;
+  indexes: Map<K, number>;
 
   #maxSize: number;
   #compare: (a: T, b: T) => number;
-  #extractKey: (item: T) => string;
+  #extractKey: (item: T) => K;
 
   constructor({
     data = [],
     maxSize = Infinity,
     compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0),
-    extractKey = (item) => item as unknown as string,
-  }: UniqueueOptions<T> = {}) {
-    this.data = data;
-    this.indexes = new Map(
-      data.map((item, index) => [extractKey(item), index]),
-    );
+    extractKey = (item) => item as unknown as K,
+  }: UniqueueOptions<T, K> = {}) {
     this.#maxSize = maxSize;
     this.#compare = compare;
     this.#extractKey = extractKey;
 
-    if (data.length > 0) {
-      for (let i = (data.length >>> 1) - 1; i >= 0; i--) {
+    this.data = [];
+    this.indexes = new Map();
+
+    for (const item of data) {
+      const key = extractKey(item);
+      if (!this.indexes.has(key)) {
+        this.indexes.set(key, this.data.length);
+        this.data.push(item);
+      }
+    }
+
+    if (this.data.length > 0) {
+      for (let i = (this.data.length >>> 1) - 1; i >= 0; i--) {
         this.#siftDown(i);
       }
     }
@@ -126,7 +133,7 @@ export class Uniqueue<T> {
     return this.data[0];
   }
 
-  remove(key: string): boolean {
+  remove(key: K): boolean {
     const index = this.indexes.get(key);
     if (index === undefined) return false;
 
@@ -152,11 +159,11 @@ export class Uniqueue<T> {
     return true;
   }
 
-  has(key: string): boolean {
+  has(key: K): boolean {
     return this.indexes.has(key);
   }
 
-  get(key: string): T | undefined {
+  get(key: K): T | undefined {
     const index = this.indexes.get(key);
     return index !== undefined ? this.data[index] : undefined;
   }

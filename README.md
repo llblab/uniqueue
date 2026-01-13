@@ -19,6 +19,10 @@ Combines a binary heap with a key-to-index `Map`, enabling O(log n) inserts/upda
 npm install @llblab/uniqueue
 ```
 
+```bash
+deno add jsr:@llblab/uniqueue
+```
+
 ## Usage
 
 ### Basic Example (Top-N Leaderboard)
@@ -34,8 +38,8 @@ import { Uniqueue } from "@llblab/uniqueue";
 // the root (smallest/worst) is evicted, keeping the best scores.
 const leaderboard = new Uniqueue({
   compare: (a, b) => a.score - b.score,
-  extractKey: (item) => item.playerId, // Unique by playerId
-  maxSize: 3, // Keep only top 3 scores
+  extractKey: (item) => item.playerId,
+  maxSize: 3,
 });
 
 // Add items
@@ -75,7 +79,7 @@ Creates a new priority queue instance.
 | `data`       | `T[]`              | `[]`                                     | Initial data array.                                                    |
 | `maxSize`    | `number`           | `Infinity`                               | Maximum number of items. If exceeded, lowest priority item is evicted. |
 | `compare`    | `(a, b) => number` | `(a, b) => (a < b ? -1 : a > b ? 1 : 0)` | Comparison function for heap ordering.                                 |
-| `extractKey` | `(item) => string` | `(item) => item`                         | Function to extract unique key string from item.                       |
+| `extractKey` | `(item) => K`      | `(item) => item`                         | Function to extract unique key any type from item.                     |
 
 ### Instance Methods
 
@@ -94,15 +98,15 @@ Removes and returns the highest priority item (the root of the heap).
 
 Returns the highest priority item without removing it.
 
-#### `remove(key: string): boolean`
+#### `remove(key: K): boolean`
 
 Removes the item with the given key. Returns `true` if removed, `false` otherwise.
 
-#### `has(key: string): boolean`
+#### `has(key: K): boolean`
 
 Checks if an item with the given key exists.
 
-#### `get(key: string): T | undefined`
+#### `get(key: K): T | undefined`
 
 Returns the item with the given key without removing it.
 
@@ -113,6 +117,14 @@ Removes all items from the queue.
 #### `size: number`
 
 Getter property that returns the number of items.
+
+#### `data: T[]`
+
+The underlying heap array. Items are in heap order (not sorted).
+
+#### `indexes: Map<K, number>`
+
+Map from keys to their positions in the `data` array.
 
 #### `[Symbol.iterator](): IterableIterator<T>`
 

@@ -36,14 +36,6 @@ test("Uniqueue - Unique Key Constraint (Update)", () => {
 });
 
 test("Uniqueue - Max Size Eviction", () => {
-  // Max Heap behavior for eviction test (Leaderboard style: keep top N)
-  // But wait, UniQueue evicts the ROOT (min).
-  // If we want to keep Top N High Scores, we use a Min-Heap of size N.
-  // The root is the lowest of the high scores.
-  // When we push a new score, if it's > root, we pop root (min) and push new.
-  // UniQueue logic: push adds item. If size > maxSize, returns pop().
-  // If pop() returns the item we just pushed (because it was smallest), then we correctly rejected it.
-
   const q = new Uniqueue({
     maxSize: 3,
     compare: (a, b) => a.val - b.val, // Min-Heap
@@ -53,19 +45,16 @@ test("Uniqueue - Max Size Eviction", () => {
   q.push({ id: "a", val: 10 });
   q.push({ id: "b", val: 20 });
   q.push({ id: "c", val: 30 });
-  // Queue: [10, 20, 30] (roughly)
 
-  const evicted1 = q.push({ id: "d", val: 5 }); // 5 is smaller than 10.
-  // Pushed 5. Queue becomes [5, 10, 20, 30]. Pop 5.
+  const evicted1 = q.push({ id: "d", val: 5 });
   assert.deepEqual(evicted1, { id: "d", val: 5 });
   assert.equal(q.size, 3);
-  assert.equal(q.peek().val, 10); // 10 is still min of the queue
+  assert.equal(q.peek().val, 10);
 
-  const evicted2 = q.push({ id: "e", val: 25 }); // 25 is > 10.
-  // Pushed 25. Queue has 4 items. Min is 10. Pop 10.
+  const evicted2 = q.push({ id: "e", val: 25 });
   assert.deepEqual(evicted2, { id: "a", val: 10 });
   assert.equal(q.size, 3);
-  assert.equal(q.peek().val, 20); // Now min is 20
+  assert.equal(q.peek().val, 20);
 });
 
 test("Uniqueue - get / has / size / clear", () => {
@@ -163,4 +152,114 @@ test("Uniqueue - Payload Update (Same Priority)", () => {
   assert.equal(q.size, 1);
   assert.equal(q.peek().val, 10);
   assert.equal(q.peek().payload, "v2"); // Should be updated
+});
+
+test("Generic Key - Number keys", () => {
+  const q = new Uniqueue({
+    compare: (a, b) => a.val - b.val,
+    extractKey: (item) => item.id, // number key
+  });
+
+  q.push({ id: 1, val: 10 });
+  q.push({ id: 2, val: 5 });
+  q.push({ id: 1, val: 3 }); // Update by number key
+
+  assert.equal(q.size, 2);
+  assert.equal(q.peek().val, 3);
+  assert.equal(q.has(1), true);
+  assert.equal(q.has(3), false);
+  assert.deepEqual(q.get(2), { id: 2, val: 5 });
+});
+
+test("Generic Key - Symbol keys", () => {
+  const KEY_A = Symbol("a");
+  const KEY_B = Symbol("b");
+
+  const q = new Uniqueue({
+    extractKey: (item) => item.key,
+  });
+
+  q.push({ key: KEY_A, val: 1 });
+  q.push({ key: KEY_B, val: 2 });
+  q.push({ key: KEY_A, val: 99 }); // Update
+
+  assert.equal(q.size, 2);
+  assert.equal(q.has(KEY_A), true);
+  assert.equal(q.get(KEY_A).val, 99);
+});
+
+test("Generic Key - Object keys (reference equality)", () => {
+  const keyObj1 = { id: 1 };
+  const keyObj2 = { id: 2 };
+
+  const q = new Uniqueue({
+    compare: (a, b) => a.val - b.val,
+    extractKey: (item) => item.ref,
+  });
+
+  q.push({ ref: keyObj1, val: 10 });
+  q.push({ ref: keyObj2, val: 5 });
+  q.push({ ref: keyObj1, val: 1 }); // Same reference
+
+  assert.equal(q.size, 2);
+  assert.equal(q.peek().val, 1);
+  assert.equal(q.has(keyObj1), true);
+  assert.equal(q.has({ id: 1 }), false); // Different reference
+});
+
+// ==================== EDGE CASES ====================
+
+test("Edge - Empty queue operations", () => {
+  const q = new Uniqueue({ compare: (a, b) => a - b });
+
+  assert.equal(q.pop(), undefined);
+  assert.equal(q.peek(), undefined);
+  assert.equal(q.size, 0);
+});
+
+test("Edge - maxSize = 1", () => {
+  const q = new Uniqueue({
+    maxSize: 1,
+    compare: (a, b) => a - b,
+  });
+
+  q.push(10);
+  assert.equal(q.size, 1);
+
+  const evicted = q.push(5);
+  assert.equal(evicted, 5); // 5 is min, evicted
+  assert.equal(q.peek(), 10);
+
+  const evicted2 = q.push(20);
+  assert.equal(evicted2, 10); // 10 is min, evicted
+  assert.equal(q.peek(), 20);
+});
+
+test("Edge - Constructor with initial data", () => {
+  const q = new Uniqueue({
+    data: [
+      { id: "c", val: 30 },
+      { id: "a", val: 10 },
+      { id: "b", val: 20 },
+    ],
+    compare: (a, b) => a.val - b.val,
+    extractKey: (item) => item.id,
+  });
+
+  assert.equal(q.size, 3);
+  assert.equal(q.peek().val, 10); // Heapified
+});
+
+test("Edge - Constructor deduplicates initial data", () => {
+  const q = new Uniqueue({
+    data: [
+      { id: "a", val: 1 },
+      { id: "a", val: 2 },
+      { id: "b", val: 3 },
+    ],
+    extractKey: (item) => item.id,
+  });
+
+  assert.equal(q.size, 2);
+  assert.equal(q.get("a").val, 1); // First wins
 });
