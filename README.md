@@ -57,7 +57,7 @@ leaderboard.push({ playerId: "alice", score: 150 });
 leaderboard.push({ playerId: "dave", score: 200 });
 // Bob (lowest score at root) is evicted
 
-console.log(leaderboard.data);
+leaderboard.snapshot();
 // Contains charlie (120), alice (150), dave (200)
 
 // Iterate over all items
@@ -118,13 +118,9 @@ Removes all items from the queue.
 
 Getter property that returns the number of items.
 
-#### `data: T[]`
+#### `snapshot(): T[]`
 
-The underlying heap array. Items are in heap order (not sorted).
-
-#### `indexes: Map<K, number>`
-
-Map from keys to their positions in the `data` array.
+Returns a shallow copy of the underlying heap array. Safe for sorting or other mutations without affecting the queue.
 
 #### `[Symbol.iterator](): IterableIterator<T>`
 

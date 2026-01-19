@@ -122,7 +122,7 @@ test("Uniqueue - Stress Test (Heap Integrity)", () => {
   input.forEach((v) => q.push(v));
 
   // Check heap property manually
-  const data = q.data;
+  const data = q.snapshot();
   for (let i = 1; i < data.length; i++) {
     const parent = (i - 1) >>> 1;
     assert.ok(data[parent] <= data[i], `Heap property violated at index ${i}`);
@@ -262,4 +262,24 @@ test("Edge - Constructor deduplicates initial data", () => {
 
   assert.equal(q.size, 2);
   assert.equal(q.get("a").val, 1); // First wins
+});
+
+test("snapshot() - returns isolated copy", () => {
+  const q = new Uniqueue({
+    compare: (a, b) => a.val - b.val,
+    extractKey: (item) => item.id,
+  });
+
+  q.push({ id: "a", val: 10 });
+  q.push({ id: "b", val: 5 });
+  q.push({ id: "c", val: 20 });
+
+  const snap = q.snapshot();
+
+  // Mutate snapshot order
+  snap.sort((a, b) => b.val - a.val);
+
+  // Original heap unchanged
+  assert.equal(q.peek().val, 5);
+  assert.equal(snap[0].val, 20);
 });

@@ -6,9 +6,8 @@ export interface UniqueueOptions<T, K = string> {
 }
 
 export class Uniqueue<T, K = string> {
-  data: T[];
-  indexes: Map<K, number>;
-
+  #data: T[];
+  #indexes: Map<K, number>;
   #maxSize: number;
   #compare: (a: T, b: T) => number;
   #extractKey: (item: T) => K;
@@ -19,30 +18,30 @@ export class Uniqueue<T, K = string> {
     compare = (a, b) => (a < b ? -1 : a > b ? 1 : 0),
     extractKey = (item) => item as unknown as K,
   }: UniqueueOptions<T, K> = {}) {
+    this.#data = [];
+    this.#indexes = new Map();
     this.#maxSize = maxSize;
     this.#compare = compare;
     this.#extractKey = extractKey;
 
-    this.data = [];
-    this.indexes = new Map();
-
     for (const item of data) {
       const key = extractKey(item);
-      if (!this.indexes.has(key)) {
-        this.indexes.set(key, this.data.length);
-        this.data.push(item);
+      if (!this.#indexes.has(key)) {
+        this.#indexes.set(key, this.#data.length);
+        this.#data.push(item);
       }
     }
 
-    if (this.data.length > 0) {
-      for (let i = (this.data.length >>> 1) - 1; i >= 0; i--) {
+    if (this.#data.length > 0) {
+      for (let i = (this.#data.length >>> 1) - 1; i >= 0; i--) {
         this.#siftDown(i);
       }
     }
   }
 
   #siftUp(pos: number): void {
-    const { data, indexes } = this;
+    const data = this.#data;
+    const indexes = this.#indexes;
     const compare = this.#compare;
     const extractKey = this.#extractKey;
     const item = data[pos];
@@ -61,7 +60,8 @@ export class Uniqueue<T, K = string> {
   }
 
   #siftDown(pos: number): void {
-    const { data, indexes } = this;
+    const data = this.#data;
+    const indexes = this.#indexes;
     const compare = this.#compare;
     const extractKey = this.#extractKey;
     const item = data[pos];
@@ -93,17 +93,17 @@ export class Uniqueue<T, K = string> {
 
   push(item: T): T | undefined {
     const key = this.#extractKey(item);
-    const index = this.indexes.get(key);
+    const index = this.#indexes.get(key);
 
     if (index === undefined) {
-      this.data.push(item);
-      this.#siftUp(this.data.length - 1);
-      if (this.data.length <= this.#maxSize) return;
+      this.#data.push(item);
+      this.#siftUp(this.#data.length - 1);
+      if (this.#data.length <= this.#maxSize) return;
       return this.pop();
     }
 
-    const oldItem = this.data[index];
-    this.data[index] = item;
+    const oldItem = this.#data[index];
+    this.#data[index] = item;
     const cmp = this.#compare(oldItem, item);
 
     if (cmp < 0) {
@@ -114,15 +114,15 @@ export class Uniqueue<T, K = string> {
   }
 
   pop(): T | undefined {
-    if (this.data.length === 0) return;
+    if (this.#data.length === 0) return;
 
-    const top = this.data[0];
-    this.indexes.delete(this.#extractKey(top));
+    const top = this.#data[0];
+    this.#indexes.delete(this.#extractKey(top));
 
-    const bottom = this.data.pop();
-    if (this.data.length > 0 && bottom !== undefined) {
-      this.indexes.set(this.#extractKey(bottom), 0);
-      this.data[0] = bottom;
+    const bottom = this.#data.pop();
+    if (this.#data.length > 0 && bottom !== undefined) {
+      this.#indexes.set(this.#extractKey(bottom), 0);
+      this.#data[0] = bottom;
       this.#siftDown(0);
     }
 
@@ -130,27 +130,27 @@ export class Uniqueue<T, K = string> {
   }
 
   peek(): T | undefined {
-    return this.data[0];
+    return this.#data[0];
   }
 
   remove(key: K): boolean {
-    const index = this.indexes.get(key);
+    const index = this.#indexes.get(key);
     if (index === undefined) return false;
 
-    const lastIndex = this.data.length - 1;
+    const lastIndex = this.#data.length - 1;
     if (index === lastIndex) {
-      this.indexes.delete(key);
-      this.data.pop();
+      this.#indexes.delete(key);
+      this.#data.pop();
       return true;
     }
 
-    const item = this.data.pop() as T;
-    this.indexes.delete(key);
-    this.indexes.set(this.#extractKey(item), index);
-    this.data[index] = item;
+    const item = this.#data.pop() as T;
+    this.#indexes.delete(key);
+    this.#indexes.set(this.#extractKey(item), index);
+    this.#data[index] = item;
 
     const parentIndex = (index - 1) >>> 1;
-    if (index > 0 && this.#compare(item, this.data[parentIndex]) < 0) {
+    if (index > 0 && this.#compare(item, this.#data[parentIndex]) < 0) {
       this.#siftUp(index);
     } else {
       this.#siftDown(index);
@@ -160,24 +160,28 @@ export class Uniqueue<T, K = string> {
   }
 
   has(key: K): boolean {
-    return this.indexes.has(key);
+    return this.#indexes.has(key);
   }
 
   get(key: K): T | undefined {
-    const index = this.indexes.get(key);
-    return index !== undefined ? this.data[index] : undefined;
+    const index = this.#indexes.get(key);
+    return index !== undefined ? this.#data[index] : undefined;
   }
 
   clear(): void {
-    this.data = [];
-    this.indexes.clear();
+    this.#data = [];
+    this.#indexes.clear();
   }
 
   get size(): number {
-    return this.data.length;
+    return this.#data.length;
+  }
+
+  snapshot(): T[] {
+    return [...this.#data];
   }
 
   *[Symbol.iterator](): IterableIterator<T> {
-    yield* this.data;
+    yield* this.#data;
   }
 }
