@@ -1,6 +1,6 @@
 {
   "name": "@llblab/uniqueue",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "High-performance priority queue with unique key constraint (O(1) lookup, O(log n) update)",
   "type": "module",
   "main": "dist/index.js",
@@ -19,7 +19,8 @@
   "scripts": {
     "build": "tsc",
     "prepack": "npm run build",
-    "test": "npm run build && node --test test.js"
+    "test": "npm run build && node --test test.js",
+    "validate": "npm test && npm audit --omit=dev && npm pack --dry-run"
   },
   "keywords": [
     "priority-queue",
